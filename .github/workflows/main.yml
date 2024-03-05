@@ -1,0 +1,44 @@
+---
+name: "GitHub Actions Example"
+
+"on":
+  pull_request:
+  push: { branches: [main] }
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          
+      - name: Check out code
+        uses: actions/checkout@v2
+        
+        
+      - uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.14.4
+
+      - name: Terraform Fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform init
+        id: init
+        run: terraform init
+       
+      - name: Terraform validate
+        id: validate
+        run: terraform validate
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -no-color
+        
+    
