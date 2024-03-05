@@ -41,4 +41,20 @@ jobs:
         id: plan
         run: terraform plan -no-color
         
-    
+    deploy:
+    needs: build
+    name: Deploy to EKS
+    runs-on: [self-hosted, prod]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup kubeconfig
+ 
+        id: setup-kubeconfig
+        run: |
+          export AWS_PROFILE=${{ secrets.PROD_AWS_PROFILE }}
+          aws eks --region eu-west-2 update-kubeconfig --name conigital-prod-eks-cluster
+      - name: Update k8s manifest
+        run: |
+          cd k8s-manifests
+          sed -i 's/aac2c87a39c449091b7d4d539b71362054002f22/${{ github.sha }}/g' prod_conop.yml
+          kubectl apply -f prod_conop.yml
